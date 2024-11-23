@@ -8,11 +8,6 @@ dotenv.config();
 const RPC_ENDPOINT = "https://api.mainnet-beta.solana.com";
 const connection = new Connection(RPC_ENDPOINT, "confirmed");
 
-async function getLatestContactAddress(userid) {
-    const contactAddress = await ContactAddress.findOne({ userid: userid.toString() }).sort({ createdAt: -1 }).exec();
-    if (!contactAddress) throw new Error("No contact address found for the user.");
-    return contactAddress.contactAddress;
-}
 
 async function fetchWithRetry(url, options, retries = 3, backoff = 1000) {
     for (let i = 0; i < retries; i++) {
@@ -32,6 +27,13 @@ async function fetchWithRetry(url, options, retries = 3, backoff = 1000) {
 }
 
 export async function ProcessSendTransaction({ userid, action, privateKey, amount }) {
+    async function getLatestContactAddress(userid) {
+        const contactAddress = await ContactAddress.findOne({ userid: userid.toString() }).sort({ createdAt: -1 }).exec();
+        if (!contactAddress) throw new Error("No contact address found for the user.");
+        return contactAddress.contactAddress;
+    }
+    
+    console.log("private", privateKey, amount,userid)
     const payer = Keypair.fromSecretKey(bs58.decode(privateKey));
 
     try {
